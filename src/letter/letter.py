@@ -44,9 +44,11 @@ class Letter:
     def to_pdf(self):
         temp_file = TempFile("pdf")
         self.bill.to_pdf(temp_file.name, full_page=False)
-        combined_name = self.bill.creditor.company
+        combined_name = self.bill.debtor.company
         if self.bill.debtor.name:
             combined_name += f"\\\\{self.bill.debtor.name}"
+        #ToDo: do this properly for all variables and for all symbols:
+        combined_name = combined_name.replace("&", "\&")
         tex_content = self.template_tex.format(dcombined_name=combined_name,
                                     dstreet=self.bill.debtor.street,
                                     dhouse_num=self.bill.debtor.house_num,
@@ -107,7 +109,7 @@ class Letter:
         special_char_map = {ord('ä'):'ae', ord('ü'):'ue', ord('ö'):'oe', ord('é'):'e',
                         ord('è'):'e', ord('ë'):'e', ord('\n'):'?'}
         clean_name = name_underscore.translate(special_char_map)
-        filename = f"{clean_name}_{datetime.now().strftime("%Y-%m-%d")}.pdf"
+        filename = f"{clean_name}_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return filename
     
     def _cleanup_tex_files(self, tex_filename: str):

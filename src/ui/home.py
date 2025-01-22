@@ -29,7 +29,7 @@ def configure_single_bill():
     title = st.text_input("Title:", value="", placeholder="Rechnung")
     subtitle = st.text_input("Subtitle:", value="")
     salutation = st.text_input("Salutation:", value="",)
-    text = st.text_input("Text:", value="")
+    text = st.text_area("Text:", value="")
     amount = st.text_input("Amount:", value="")
     reference_number = st.text_input("Reference Number:", value="")
     additional_information = st.text_input("Additional Information:", value="")
