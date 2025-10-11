@@ -9,7 +9,7 @@ from src.utils.temp_file import TempFile
 from src.utils.company_address import Company
 from src.config.paths import TEX_PATH
 
-AVAILABLE_PLACEHOLDERS = ['dcombined_name', 'dstreet', 'dcity', 'dhouse_num', 'date', 'title', 'subtitle', 'salutation', 'text', 'bill_path', 'files_path']
+AVAILABLE_PLACEHOLDERS = ['dcombined_name', 'dstreet', 'dcity', 'dpcode', 'dhouse_num', 'date', 'title', 'subtitle', 'salutation', 'text', 'bill_path', 'files_path']
 
 
 class LetterMeta(BaseModel):
@@ -53,6 +53,7 @@ class Letter:
                                     dstreet=self.bill.debtor.street,
                                     dhouse_num=self.bill.debtor.house_num,
                                     dcity=self.bill.debtor.city,
+                                    dpcode=self.bill.debtor.pcode,
                                     date=datetime.now().strftime("%d.%m.%Y"),
                                     title=self.meta.title,
                                     subtitle=self.meta.subtitle,
@@ -61,12 +62,6 @@ class Letter:
                                     bill_path=temp_file.name,
                                     files_path=os.path.join(os.path.dirname(__file__), "templates", "files"))
         self._compile_latex(tex_content)
-        
-    def _format_tex_template(self, template: str, **kwargs) -> str:
-        fstring = self._convert_tex_template_to_fstring(template=template)
-        for kwarg in kwargs:
-            if self._has_lb_placeholder(kwarg):
-                pass
         
     def _has_lb_placeholder(self, template: str, placeholder: str) -> bool:
         return f"{placeholder}__lb" in template

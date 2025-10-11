@@ -7,7 +7,7 @@ authors = []
 
 # Requirements
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.13"
 qrbill = "*"
 reportlab = "*"
 svglib = "^1.5.1"

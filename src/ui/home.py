@@ -129,7 +129,7 @@ def enter_new_company(type: str):
     house_num = st.text_input(f"{type} House Number:", value="")
     pcode = st.text_input(f"{type} Postal Code:", value="")
     city = st.text_input(f"{type} City:", value="")
-    if type == "creditor":
+    if type == "Creditor":
         account = st.text_input(f"{type} Account:", value="")
     else:
         account = None
