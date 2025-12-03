@@ -5,8 +5,9 @@ from src.letter.letter import Letter, LetterMeta
 from src.utils.company_address import Company
 from src.config.known_companies import KnownCreditors, KnownDebtors
 from src.config.paths import OUTPUT_PATH
+from typing import Optional
 
-REQ_COLUMNS = ["Firma", "Name", "Anrede", "Betrag", "Ref-Nr", "Strasse", "Plz", "Nr", "Ort"]
+REQ_COLUMNS = ["Firma", "Vorname", "Nachname", "Anrede", "Betrag", "Ref-Nr", "Strasse", "Plz", "Nr", "Ort", "Du/Sie"]
 
 def setup_page():
     st.set_page_config(page_title="TVW Billing Tool")
@@ -59,14 +60,14 @@ def configure_bulk_bill():
             if col not in data.columns:
                 raise ValueError(f"Column {col} is required!")
         st.markdown("### Creditor")
-        creditor = select_company("Creditor")
+        creditor = select_company("Creditor", key="bulk_creditor")
 
         st.markdown("### Content")
         st.markdown(f"Available variables: {list(data.columns)}")
-        title = st.text_input("Title:", value="", placeholder="Rechnung")
-        subtitle = st.text_input("Subtitle:", value="")
-        text = st.text_input("Text:", value="")
-        additional_information = st.text_input("Additional Information:", value="")
+        title = st.text_input("Title:", value="", placeholder="Rechnung", key="bulk_title")
+        subtitle = st.text_input("Subtitle:", value="", key="bulk_subtitle")
+        text = st.text_area("Text:", value="", key="bulk_text")
+        additional_information = st.text_input("Additional Information:", value="", key="bulk_additional_information")
         if st.button(label="Bulk Create"):
             create_bills_in_bulk(data, title=title, subtitle=subtitle, text=text, additional_information=additional_information, creditor=creditor)
 
@@ -88,15 +89,22 @@ def create_bills_in_bulk(data: pd.DataFrame, creditor: Company, title: str, subt
         row = data.loc[idx,:]
         current += step
         progress_bar.progress(current)
+        if row["Du/Sie"].strip().lower() == "du":
+            salutation = f"{row["Anrede"]} {row['Vorname']}"
+        else:
+            if row["Nachname"].strip() == "":
+                salutation = row["Anrede"]
+            else:
+                salutation = f"{row["Anrede"]} {row['Nachname']}"
         debtor = Company(company=row["Firma"],
-                         name=row["Name"],
+                         name=row["Vorname"] + " " + row["Nachname"],
                          street=row["Strasse"],
                          house_num=row["Nr"],
                          pcode=row["Plz"],
                          city=row["Ort"])
         meta = LetterMeta(title=title,
                     subtitle=subtitle.format(**row),
-                    salutation=row["Anrede"],
+                    salutation=salutation,
                     text=text.format(**row),
                     amount=row["Betrag"],
                     reference_number=row["Ref-Nr"],
@@ -106,7 +114,7 @@ def create_bills_in_bulk(data: pd.DataFrame, creditor: Company, title: str, subt
         create_bill(meta=meta)
     st.toast("Done creating Bills")
     
-def select_company(type: str):
+def select_company(type: str, key: Optional[str] = None):
     if type not in ["Creditor", "Debtor"]:
         raise ValueError(f"Type must be Creditor or Debtor but is {type}")
     if type == "Creditor":
@@ -114,7 +122,8 @@ def select_company(type: str):
     else:
         options = list(KnownDebtors().__dict__.values())
     options.append(f"New {type}")
-    company = st.selectbox(f"Select {type}:", options)
+    key = key or "select_"+type
+    company = st.selectbox(f"Select {type}:", options, key=key)
     
     if company == f"New {type}":
         company = enter_new_company(type)
